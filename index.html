@@ -189,7 +189,7 @@ function loginView(){
     <div class="school">SD NEGERI 3 SUNGAI DANAU · KEC. SATUI</div></div></div>`;
   $('#eye').onclick=()=>{const p=$('#p'),e=$('#eye'),show=p.type==='password';p.type=show?'text':'password';e.className='fa-solid toggle-eye '+(show?'fa-eye-slash':'fa-eye')};
   const go=()=>run(async()=>{$('#go').disabled=true;try{S=await api('login',{username:$('#u').value,password:$('#p').value,kelas:$('#k').value});sessionStorage.setItem('sp',JSON.stringify(S));boot()}finally{const b=$('#go');if(b)b.disabled=false}});
-  $('#go').onclick=go;$('#p').onkeydown=e=>e.key==='Enter'&&go()}
+  $('#go').onclick=go;$('#p').onkeydown=e=>{if(e.key==='Enter')go()}}
 function shell(){
   const sk=S.config.sekolah,sm=S.config.semester==1?'Ganjil':'Genap';
   $('#app').innerHTML=`<div id="app-layout">
@@ -256,7 +256,7 @@ V.tp=async el=>{
     const row=(t='',a=true)=>`<div class="bar tpr" style="flex-wrap:nowrap"><textarea rows="2" style="flex:1;padding:6px" ${edit?'':'disabled'}>${esc(t)}</textarea><label><input type="checkbox" ${a?'checked':''} ${edit?'':'disabled'}> aktif</label>${edit?'<button class="btn2 x">✕</button>':''}</div>`;
     tl.innerHTML=it.map(i=>row(i.teks,i.aktif)).join('')+(edit?'<button class="btn2" id="addtp">+ Tambah TP</button> <button class="btn" id="svtp">Simpan TP</button>':'');
     if(!edit)return;
-    tl.onclick=e=>e.target.classList.contains('x')&&e.target.closest('.tpr').remove();
+    tl.onclick=e=>{if(e.target.classList.contains('x'))e.target.closest('.tpr').remove()};
     $('#addtp').onclick=()=>$('#addtp').insertAdjacentHTML('beforebegin',row());
     $('#svtp').onclick=()=>run(async()=>{await api('tp.save',{mapel:m,agama:$('#ag').value,items:$$('.tpr',tl).map(r=>({teks:$('textarea',r).value,aktif:$('input',r).checked}))})},'TP tersimpan')};
   $('#m').onchange=$('#ag').onchange=()=>run(load);load()};
