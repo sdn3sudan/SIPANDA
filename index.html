@@ -169,7 +169,7 @@ function toast(m,bad){const t=document.createElement('div');t.className='toast'+
 async function run(fn,ok){try{await fn();ok&&toast(ok)}catch(e){toast(e.message,1)}}
 const has=c=>S.caps.includes(c),full=()=>has('admin')||has('wali')||has('kepsek'),ro=()=>has('kepsek');
 const pred=n=>n===''||n==='-'||n==null?'':n>=76?'p-sb':n>=70?'p-b':n>=50?'p-c':'p-k';
-const MENU=[['dashboard','Dashboard','fa-house',1],['siswa','Data Siswa','fa-users',full],['tp','Tujuan Pembelajaran','fa-book-open',1],['nilai','Daftar Nilai','fa-chart-column',1],['absensi','Absensi','fa-calendar-check',full],['rapor','Cetak Rapor','fa-print',full],['pengaturan','Pengaturan','fa-gear',1]];
+const MENU=[['dashboard','Dashboard','fa-house',1],['sekolah','Data Sekolah','fa-school',full],['siswa','Data Siswa','fa-users',full],['tp','Tujuan Pembelajaran','fa-book-open',1],['nilai','Daftar Nilai','fa-chart-column',1],['absensi','Absensi','fa-calendar-check',full],['ekskul','Ekstrakurikuler','fa-futbol',full],['koku','Kokurikuler','fa-award',full],['leger','Leger','fa-table-list',full],['rapor','Cetak Rapor','fa-print',full],['reset','Reset','fa-arrows-rotate',()=>!ro()],['pengaturan','Pengaturan','fa-gear',1]];
 
 function boot(){S?shell():loginView()}
 function loginView(){
@@ -189,21 +189,21 @@ function loginView(){
     <div class="school">SD NEGERI 3 SUNGAI DANAU · KEC. SATUI</div></div></div>`;
   $('#eye').onclick=()=>{const p=$('#p'),e=$('#eye'),show=p.type==='password';p.type=show?'text':'password';e.className='fa-solid toggle-eye '+(show?'fa-eye-slash':'fa-eye')};
   const go=()=>run(async()=>{$('#go').disabled=true;try{S=await api('login',{username:$('#u').value,password:$('#p').value,kelas:$('#k').value});sessionStorage.setItem('sp',JSON.stringify(S));boot()}finally{const b=$('#go');if(b)b.disabled=false}});
-  $('#go').onclick=go;$('#p').onkeydown=e=>{if(e.key==='Enter')go()}}
+  $('#u').oninput=e=>{e.target.value=e.target.value.replace(/\s/g,'')};$('#go').onclick=go;$('#p').onkeydown=e=>{if(e.key==='Enter')go()}}
 function shell(){
   const sk=S.config.sekolah,sm=S.config.semester==1?'Ganjil':'Genap';
   $('#app').innerHTML=`<div id="app-layout">
   <header class="hud"><div class="hud-brand">${logo('','orb-sm')}<div><b>SIPANDA</b><small>E-RAPOR · SDN 3 SUNGAI DANAU</small></div></div>
     <nav class="topnav">${MENU.filter(m=>m[3]===1||m[3]()).map(m=>`<a data-id="${m[0]}"><i class="fa-solid ${m[2]}"></i><span>${m[1]}</span></a>`).join('')}</nav>
     <div class="hud-right"><div class="user-pill" id="up"><div class="avatar"><i class="fa-solid fa-user"></i></div><div class="user-info"><div class="un">${esc(S.user.nama)}</div><div class="ur">${esc(roleText())}</div></div><i class="fa-solid fa-chevron-down" style="font-size:.65rem;color:var(--sub)"></i></div>
-      <div class="udm" id="ud"><a id="goset"><i class="fa-solid fa-gear"></i> Pengaturan</a><hr><a id="out"><i class="fa-solid fa-right-from-bracket"></i> Keluar</a></div></div></header>
-  <div class="strip"><span class="tag"><i class="fa-solid fa-chalkboard-user"></i>Kelas ${esc(S.kelas)}</span><span class="tag sem"><i class="fa-solid fa-calendar-check"></i>${esc(S.config.tahun)} · ${sm}</span><span class="tag"><i class="fa-regular fa-clock"></i><span id="clk"></span></span></div>
+      <div class="udm" id="ud"><a id="goprof"><i class="fa-solid fa-id-badge"></i> Profil</a><a id="goset"><i class="fa-solid fa-key"></i> Ganti Password</a><hr><a id="out"><i class="fa-solid fa-right-from-bracket"></i> Keluar</a></div></div></header>
+  <div class="strip"><span class="tag"><i class="fa-solid fa-chalkboard-user"></i>Kelas ${esc(S.kelas)}</span><span class="tag sem"><i class="fa-solid fa-calendar-check"></i>Aplikasi e-Rapor | ${esc(S.config.tahun)} ${sm}</span><span class="tag"><i class="fa-regular fa-clock"></i><span id="clk"></span></span></div>
   <main class="page" id="main"></main>
-  <footer class="foot"><span><i class="fa-solid fa-graduation-cap"></i> e-Rapor SD · Versi 2026.1 · ${esc(sk.nama)}</span><span>Bersama Membangun Pendidikan Berkualitas</span></footer></div>`;
+  <footer class="foot"><span><i class="fa-solid fa-graduation-cap"></i> Aplikasi e-Rapor SD | Versi 2026.1 | ${esc(sk.nama).toUpperCase()}</span><span>Bersama Membangun Pendidikan Berkualitas</span></footer></div>`;
   $$('.topnav a').forEach(a=>a.onclick=()=>nav(a.dataset.id));
   $('#up').onclick=e=>{e.stopPropagation();$('#ud').classList.toggle('show')};
   document.onclick=()=>{const d=$('#ud');d&&d.classList.remove('show')};
-  $('#goset').onclick=()=>nav('pengaturan');
+  $('#goset').onclick=()=>nav('pengaturan');$('#goprof').onclick=()=>toast(S.user.nama+(/^\d+$/.test(S.user.username)?'\n'+(S.user.jenis_nip||'NIP')+'. '+S.user.username:'')+'\n'+roleText()+' · Kelas '+S.kelas);
   $('#out').onclick=async()=>{try{await api('logout')}catch(e){}sessionStorage.clear();S=null;boot()};
   const tick=()=>{const c=$('#clk');if(c)c.textContent=new Date().toLocaleString('id-ID',{weekday:'short',day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})};
   tick();clearInterval(window._clk);window._clk=setInterval(tick,30000);
@@ -227,8 +227,48 @@ V.dashboard=async el=>{
     <div class="kpi"><i class="fa-solid fa-chart-column"></i><small>Jumlah Nilai</small><b>${fmt(s.jumlahNilai)}</b></div></div>
   <div class="g2"><div class="card"><div class="ch">Status Input Nilai · ${s.scope==='sekolah'?'Seluruh Sekolah':'Kelas '+esc(s.scope)}</div><div class="cb stat-split"><div class="dn" style="--p:${s.persen}"><span>${s.persen}%</span></div><div>Sudah Diinput<div class="big-ok">${fmt(s.sudah)}</div>Belum Diinput<div class="big-bad">${fmt(s.belum)}</div></div></div></div>
   <div class="card"><div class="ch">Informasi Penting</div><div class="cb">Pastikan data dan nilai selalu diperbarui.${S.passwordDefault?'<span class="warn-txt"><i class="fa-solid fa-triangle-exclamation"></i> Segera ganti password default di menu Pengaturan.</span>':''}</div></div></div>
-  <div class="card"><div class="ch">Pengumuman</div><div class="cb ann">${pg.length?pg.map(p=>`<p><b>${esc(p.judul)}</b> <small>${esc(p.tanggal)}</small><br>${esc(p.isi)}</p>`).join(''):'Tidak ada pengumuman terbaru.'}</div></div>`};
+  <div class="card"><div class="ch">Pengumuman<button class="btn2" id="pgall" style="margin-left:auto;padding:5px 12px;font-size:.78rem">Lihat Semua</button></div><div class="cb ann" id="pgl">${pg.length?pg.slice(0,3).map(p=>`<p><b>${esc(p.judul)}</b> <small>${esc(p.tanggal)}</small><br>${esc(p.isi)}</p>`).join(''):'Tidak ada pengumuman terbaru.'}</div></div>`;
+  const pl=p=>`<p><b>${esc(p.judul)}</b> <small>${esc(p.tanggal)}</small><br>${esc(p.isi)}</p>`;let all=false;
+  $('#pgall').onclick=()=>{all=!all;$('#pgl').innerHTML=pg.length?pg.slice(0,all?pg.length:3).map(pl).join(''):'Tidak ada pengumuman terbaru.';$('#pgall').textContent=all?'Ringkas':'Lihat Semua'}};
 
+
+V.sekolah=async el=>{
+  const sk=S.config.sekolah||{},ad=has('admin'),lb=k=>k.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()),ks=Object.keys(sk).filter(k=>typeof sk[k]!=='object'),tr=(k,v)=>`<tr><th style="text-align:left">${esc(k)}</th><td>${esc(v)}</td></tr>`;
+  el.innerHTML=`<div class="card"><div class="ch">Data Sekolah</div><div class="cb"><div class="frm" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">${ks.map(k=>`<div><small>${esc(lb(k))}</small><input data-k="${esc(k)}" value="${esc(sk[k])}" ${ad?'':'disabled'}></div>`).join('')}</div><div class="tw"><table>${tr('Tahun Pelajaran',S.config.tahun)}${tr('Semester',S.config.semester+' ('+(S.config.semester==1?'Ganjil':'Genap')+')')}${tr('Nama Guru',S.user.nama)}${/^\d+$/.test(S.user.username)?tr(S.user.jenis_nip||'NIP',S.user.username):''}</table></div>${ad?'<button class="btn" id="sv" style="margin-top:12px">Simpan Data Sekolah</button>':'<p style="margin-top:10px"><small>Data sekolah diisi oleh Admin dan dipakai pada header serta tanda tangan rapor.</small></p>'}</div></div>`;
+  if(ad)$('#sv').onclick=()=>run(async()=>{const o={};$$('[data-k]').forEach(i=>o[i.dataset.k]=i.value);S.config=await api('config.save',{sekolah:o});sessionStorage.setItem('sp',JSON.stringify(S));nav('sekolah')},'Data sekolah tersimpan')};
+
+V.ekskul=async el=>{
+  const [sw,e]=await Promise.all([api('siswa.list'),api('ekskul.list')]),w=!ro(),dis=w?'':'disabled';
+  el.innerHTML=`<div class="card"><div class="ch">Data Ekstrakurikuler — Kelas ${esc(S.kelas)}</div><div class="cb">${w?'<button class="btn" id="sv" style="margin-bottom:10px">Simpan</button>':''}<datalist id="dl">${e.daftar.map(x=>`<option value="${esc(x)}">`).join('')}</datalist><div class="tw"><table><tr><th>No</th><th>Nama</th><th>Ekskul 1</th><th>Keterangan 1</th><th>Ekskul 2</th><th>Keterangan 2</th></tr>${sw.map((s,i)=>{const it=e.data[s.nis]||[];return `<tr data-n="${esc(s.nis)}"><td>${i+1}</td><td>${esc(s.nama)}</td>${[0,1].map(j=>`<td><input list="dl" data-f="e" value="${esc((it[j]||{}).ekskul||'')}" ${dis}></td><td><input data-f="k" value="${esc((it[j]||{}).keterangan||'')}" placeholder="Sangat Baik / Baik / Cukup" ${dis}></td>`).join('')}</tr>`}).join('')}</table></div><p style="margin-top:10px"><small>Ketik nama ekskul baru untuk menambah ke daftar. Siswa tanpa ekskul dibiarkan kosong.</small></p></div></div>`;
+  if(w)$('#sv').onclick=()=>run(()=>api('ekskul.save',{entries:$$('tr[data-n]',el).map(tr=>{const E=$$('[data-f=e]',tr),K=$$('[data-f=k]',tr);return{nis:tr.dataset.n,items:E.map((x,j)=>({ekskul:x.value,keterangan:K[j].value}))}})}),'Tersimpan')};
+
+V.koku=async el=>{
+  const [sw,d]=await Promise.all([api('siswa.list'),api('koku.list')]),w=!ro(),dis=w?'':'disabled',op=d.opsi,CP=['Sangat baik','Baik','Cukup baik','Perlu bimbingan'],cl=d.data['*']||{kegiatan:[],dimensi:[],capaian:'Baik'},
+  hd=(n,s)=>(cl.dimensi||[]).some(y=>y.dim===n&&y.sub.includes(s)),ad=has('admin');
+  el.innerHTML=`<div class="card"><div class="ch">Data Kokurikuler — Kelas ${esc(S.kelas)}</div><div class="cb"><p><b>Kegiatan kokurikuler</b></p><div class="bar" id="kg">${op.kegiatan.map(k=>`<label><input type="checkbox" value="${esc(k)}" ${cl.kegiatan.includes(k)?'checked':''} ${dis}> ${esc(k)}</label>`).join('')}</div>
+  <p><b>Dimensi Profil Lulusan</b></p>${op.dimensi.map(x=>`<div class="bar dm" data-d="${esc(x.dim)}"><b style="min-width:280px">${esc(x.dim)}</b>${x.sub.map(s=>`<label><input type="checkbox" value="${esc(s)}" ${hd(x.dim,s)?'checked':''} ${dis}> ${esc(s)}</label>`).join('')||'<small>(tanpa subdimensi)</small>'}</div>`).join('')}
+  <div class="bar"><b>Capaian kelas:</b><select id="cp" ${dis}>${CP.map(c=>`<option ${c.toLowerCase()===String(cl.capaian).toLowerCase()?'selected':''}>${c}</option>`).join('')}</select>${w?'<button class="btn" id="sv">Simpan</button>':''}</div>
+  <p><small>Penyesuaian capaian per siswa (opsional):</small></p><div class="tw"><table><tr><th>No</th><th>Nama</th><th>Capaian</th></tr>${sw.map((s,i)=>{const x=d.data[s.nis];return `<tr><td>${i+1}</td><td>${esc(s.nama)}</td><td><select data-n="${esc(s.nis)}" ${dis}><option value="__">Ikuti kelas</option>${CP.map(c=>`<option ${x&&c.toLowerCase()===String(x.capaian).toLowerCase()?'selected':''}>${c}</option>`).join('')}</select></td></tr>`}).join('')}</table></div></div></div>
+  ${ad?`<div class="card"><div class="ch">Admin — Daftar Kegiatan & Dimensi</div><div class="cb"><p><small>Satu kegiatan per baris.</small></p><textarea id="ak" rows="5" style="width:100%">${esc(op.kegiatan.join('\n'))}</textarea><p style="margin-top:10px"><small>Satu dimensi per baris, format: Dimensi: subdimensi 1; subdimensi 2</small></p><textarea id="ad" rows="8" style="width:100%">${esc(op.dimensi.map(x=>x.dim+(x.sub.length?': '+x.sub.join('; '):'')).join('\n'))}</textarea><button class="btn" id="sa" style="margin-top:10px">Simpan Daftar</button></div></div>`:''}`;
+  if(w)$('#sv').onclick=()=>run(()=>{const kegiatan=$$('#kg input:checked').map(i=>i.value),dimensi=$$('.dm').map(r=>({dim:r.dataset.d,sub:$$('input:checked',r).map(i=>i.value)})).filter(x=>x.sub.length),capaian=$('#cp').value,
+    entries=[{nis:'*',kegiatan,dimensi,capaian}];$$('select[data-n]').forEach(s=>entries.push(s.value==='__'?{nis:s.dataset.n,hapus:true}:{nis:s.dataset.n,kegiatan,dimensi,capaian:s.value}));return api('koku.save',{entries})},'Tersimpan');
+  if(ad)$('#sa').onclick=()=>run(async()=>{const kegiatan=$('#ak').value.split('\n').map(x=>x.trim()).filter(Boolean),dimensi=$('#ad').value.split('\n').map(x=>x.trim()).filter(Boolean).map(l=>{const i=l.indexOf(':');return i<0?{dim:l,sub:[]}:{dim:l.slice(0,i).trim(),sub:l.slice(i+1).split(';').map(x=>x.trim()).filter(Boolean)}});
+    S.config=await api('config.save',{koku_opsi:{kegiatan,dimensi}});sessionStorage.setItem('sp',JSON.stringify(S));nav('koku')},'Daftar tersimpan')};
+
+V.leger=async el=>{
+  const d=await api('leger'),rows=d.rows,
+  head=rk=>['No','Nama','NIS',...d.mapel.map(m=>m.nama),'Jumlah','Rata-rata',...(rk?['Peringkat']:[])],
+  body=rk=>rows.map((o,i)=>[i+1,o.nama,o.nis,...d.mapel.map(m=>o.nilai[m.kode]),o.jumlah,o.rata,...(rk?[o.peringkat]:[])]);
+  el.innerHTML=`<div class="card"><div class="ch">Leger Nilai — Kelas ${esc(S.kelas)}, Semester ${S.config.semester}</div><div class="cb"><div class="bar"><label><input type="checkbox" id="rk" checked> Tampilkan peringkat</label><button class="btn" id="xl"><i class="fa-solid fa-file-excel"></i> Ekspor Excel</button><button class="btn2" id="pl"><i class="fa-solid fa-print"></i> Cetak</button></div><div class="tw"><table id="lt"></table></div></div></div>`;
+  const tb=rk=>'<tr>'+head(rk).map(x=>`<th>${esc(x)}</th>`).join('')+'</tr>'+body(rk).map(r=>'<tr>'+r.map(x=>`<td>${esc(x)}</td>`).join('')+'</tr>').join('');
+  const draw=()=>{$('#lt').innerHTML=tb($('#rk').checked)};draw();$('#rk').onchange=draw;
+  $('#xl').onclick=()=>{const rk=$('#rk').checked,wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([head(rk),...body(rk)]),'Leger');XLSX.writeFile(wb,'Leger_Kelas_'+S.kelas+'.xlsx')};
+  $('#pl').onclick=()=>{$('#print').innerHTML='<div class="pvb"><button class="btn" onclick="print()">🖨 Cetak</button><button class="btn2" onclick="$(\'#print\').classList.remove(\'on\')">Tutup</button></div><section style="background:#fff;color:#000;padding:10mm;margin:10px auto;max-width:210mm;font:9pt \'Times New Roman\',serif"><h3 style="text-align:center;margin:0 0 8px;font-size:12pt">LEGER NILAI KELAS '+esc(S.kelas)+' — SEMESTER '+S.config.semester+' TA '+esc(S.config.tahun)+'</h3><table class="nl" style="width:100%;border-collapse:collapse">'+tb($('#rk').checked)+'</table></section>';$('#print').classList.add('on')}};
+
+V.reset=async el=>{
+  const wl=has('admin')||has('wali'),M=wl?[['siswa','Data Siswa (beserta nilai, absensi, ekskul, kokurikuler)'],['tp','Tujuan Pembelajaran'],['nilai','Nilai'],['absensi','Absensi'],['ekskul','Ekstrakurikuler'],['koku','Kokurikuler'],['semua','Semua data']]:[['nilai','Nilai mapel saya'],['tp','TP mapel saya']];
+  el.innerHTML=`<div class="card"><div class="ch">Reset Data — Kelas ${esc(S.kelas)}, Semester ${S.config.semester}</div><div class="cb"><p>Data yang dipilih dihapus untuk <b>kelas dan semester aktif</b>. Cadangan dibuat otomatis sebelum dihapus.</p><div class="bar"><select id="rm">${M.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join('')}</select><input id="rc" placeholder="Ketik RESET untuk konfirmasi"><button class="btn" id="rb"><i class="fa-solid fa-arrows-rotate"></i> Reset</button></div></div></div>`;
+  $('#rb').onclick=()=>{if($('#rc').value!=='RESET')return toast('Ketik RESET untuk konfirmasi.',1);if(!confirm('Yakin reset "'+$('#rm').selectedOptions[0].text+'" Kelas '+S.kelas+'?'))return;run(async()=>{const r=await api('reset',{modul:$('#rm').value,konfirmasi:'RESET'});$('#rc').value='';toast(r.dihapus+' baris dihapus (cadangan tersimpan).')})}};
 
 V.siswa=async el=>{
   const d=await api('siswa.list'),w=!ro(),ag=S.config.agama;
