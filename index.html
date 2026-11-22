@@ -96,15 +96,24 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;bac
 .big-ok{color:var(--ok);font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:700;margin-bottom:8px}.big-bad{color:#fff;font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:700;text-shadow:0 0 14px rgba(255,77,106,.9)}
 .warn-txt{display:block;margin-top:10px;color:var(--gold);font-weight:700}
 .ann p{padding:10px 0;border-bottom:1px dashed var(--line);line-height:1.5}.ann p:last-child{border:0}
-.pgr{margin-bottom:14px}.pgr:last-child{margin-bottom:0}
-.pgr-h{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:700;font-size:.9rem}
-.pgr-h span i{color:var(--rose);width:20px;text-align:center;margin-right:4px}
-.pgr-h b{font-family:'Orbitron',sans-serif;font-size:.95rem;color:var(--gold)}
-.pgr-bar{height:10px;margin:6px 0 3px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden}
-.pgr-bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--rose),#ff8a9c);transition:width .7s ease}
-.pgr.mid .pgr-bar i{background:linear-gradient(90deg,var(--gold-d),var(--gold))}
-.pgr.ok .pgr-bar i{background:linear-gradient(90deg,#1fb877,var(--ok))}.pgr.ok .pgr-h b{color:var(--ok)}
-.pgr small{color:var(--sub);font-size:.76rem}
+#pgbox{display:flex;flex-direction:column;gap:16px}
+.pgr{display:flex;align-items:center;gap:14px}
+.pgr-ic{flex:0 0 46px;height:46px;border-radius:13px;display:grid;place-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:var(--gold);font-size:1.1rem}
+.pgr-m{flex:1;min-width:0}
+.pgr-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-weight:700;font-size:.95rem;color:#fff}
+.pgr-h b{font-size:.92rem;color:#fff;font-variant-numeric:tabular-nums}
+.pgr-bar{height:10px;margin:7px 0 4px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden}
+.pgr-bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#1d4ed8,#3b82f6);transition:width .7s ease}
+.pgr.c1 .pgr-bar i{background:linear-gradient(90deg,#7e22ce,#c026d3)}
+.pgr.c2 .pgr-bar i{background:linear-gradient(90deg,#2e7d32,#6fcf5a)}
+.pgr.c3 .pgr-bar i{background:linear-gradient(90deg,#ea580c,#fbbf24)}
+.pgr.c4 .pgr-bar i{background:linear-gradient(90deg,#0d9488,#5eead4)}
+.pgr.c5 .pgr-bar i{background:linear-gradient(90deg,#be185d,#f472b6)}
+.pgr small{display:block;color:var(--sub);font-size:.72rem;opacity:.85}
+.pgr-bd{flex:0 0 auto;min-width:92px;text-align:center;padding:5px 10px;border-radius:99px;font-size:.7rem;font-weight:800;letter-spacing:.03em;border:1px solid var(--gold-d);color:var(--gold);background:rgba(224,166,59,.14)}
+.pgr-bd.ok{border-color:var(--ok);color:var(--ok);background:rgba(61,220,151,.14)}
+.pgr-bd.no{border-color:var(--rose);color:var(--rose);background:rgba(255,77,106,.14)}
+@media(max-width:600px){.pgr{gap:10px}.pgr-ic{flex-basis:38px;height:38px;font-size:.95rem}.pgr-bd{min-width:70px;padding:4px 7px;font-size:.62rem}.pgr-h{font-size:.85rem}}
 
 /* CARD / FORM / TABLE */
 .card{background:linear-gradient(160deg,rgba(60,0,14,.62),rgba(25,0,7,.72));border:1px solid var(--line);border-radius:6px 26px 6px 26px;margin-bottom:22px;overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,.35)}
@@ -321,7 +330,7 @@ const V={};
 
 /* Penyimpanan & sinkronisasi antar perangkat */
 (function(){
-  const TRK=['tp','absensi','ekskul','koku','sekolah'],REF=['dashboard','tp','nilai','absensi','ekskul','koku','siswa'],SKIP=/^(m|ag|fa|rk|kall|ne)$/;
+  const TRK=['tp','ekskul','koku','sekolah'],REF=['dashboard','tp','nilai','absensi','ekskul','koku','siswa'],SKIP=/^(m|ag|fa|rk|kall|ne)$/;
   const mark=e=>{const t=e.target;if(!S||!t||!t.closest||!t.closest('#main')||!TRK.includes(CUR)||SKIP.test(t.id||''))return;DIRTY=true};
   document.addEventListener('input',mark,true);document.addEventListener('change',mark,true);
   window.addEventListener('beforeunload',e=>{if(S&&(DIRTY||(window._pend&&window._pend()))){e.preventDefault();e.returnValue=''}});
@@ -344,19 +353,21 @@ async function pgFill(){
   pc=(f,t)=>t?Math.round(f/t*100):0;
   const [sw,nl,ab,ek,kk]=await Promise.all([T(()=>api('siswa.list')),T(()=>api('nilai.list')),fl?T(()=>api('absensi.list')):null,fl?T(()=>api('ekskul.list')):null,fl?T(()=>api('koku.list')):null]);
   const R=[],add=(ic,nm,r)=>R.push({ic,nm,r});
-  if(fl)add('fa-user-graduate','Data Siswa',sw&&(()=>{const t=sw.length*5;let f=0;sw.forEach(s=>{const x=fx(s);[x.nama,x.nis,x.nisn,x.jk,x.agama].forEach(v=>{if(ok(v))f++})});return{p:pc(f,t),d:sw.length?sw.length+' siswa · '+fmt(f)+' dari '+fmt(t)+' kolom data terisi':'Belum ada data siswa'}})());
-  add('fa-pen-to-square','Daftar Nilai',sw&&nl&&(()=>{const t=sw.length*mm.length;let f=0;sw.forEach(s=>mm.forEach(m=>{if(ok(nl[s.nis+'|'+m.kode]))f++}));return{p:pc(f,t),d:fmt(f)+' dari '+fmt(t)+' nilai terisi ('+mm.length+' mapel)'}})());
+  if(fl)add('fa-user-graduate','Kelengkapan Data Siswa',sw&&(()=>{const t=sw.length*5;let f=0;sw.forEach(s=>{const x=fx(s);[x.nama,x.nis,x.nisn,x.jk,x.agama].forEach(v=>{if(ok(v))f++})});return{p:pc(f,t),d:sw.length?sw.length+' siswa · '+fmt(f)+' dari '+fmt(t)+' kolom data terisi':'Belum ada data siswa'}})());
+  add('fa-pen-to-square','Daftar Nilai Terisi',sw&&nl&&(()=>{const t=sw.length*mm.length;let f=0;sw.forEach(s=>mm.forEach(m=>{if(ok(nl[s.nis+'|'+m.kode]))f++}));return{p:pc(f,t),d:fmt(f)+' dari '+fmt(t)+' nilai terisi ('+mm.length+' mapel)'}})());
   if(fl){
-    add('fa-clipboard-user','Absensi',sw&&ab&&(()=>{let f=0;sw.forEach(s=>{const x=(ab.data||{})[s.nis];if(x&&(['sakit','izin','alpa','sp','k','kk','catatan','kenaikan'].some(k=>ok(x[k]))))f++});return{p:pc(f,sw.length),d:f+' dari '+sw.length+' siswa sudah diisi'}})());
-    add('fa-medal','Ekstrakurikuler',sw&&ek&&(()=>{let f=0;sw.forEach(s=>{const it=(ek.data||{})[s.nis]||[];if(it.some(x=>x&&ok(x.ekskul)))f++});return{p:pc(f,sw.length),d:f+' dari '+sw.length+' siswa memiliki ekskul'}})());
-    add('fa-star','Kokurikuler',kk&&(()=>{const c=(kk.data||{})['*']||{},a=[(c.kegiatan||[]).length>0,(c.dimensi||[]).length>0],f=a.filter(Boolean).length;return{p:pc(f,2),d:'Kegiatan '+(a[0]?'✓':'belum')+' · Dimensi Profil Lulusan '+(a[1]?'✓':'belum')}})());
+    add('fa-clipboard-user','Absensi Terisi',sw&&ab&&(()=>{let f=0;sw.forEach(s=>{const x=(ab.data||{})[s.nis];if(x&&['sakit','izin','alpa'].every(k=>ok(x[k])))f++});return{p:pc(f,sw.length),d:f+' dari '+sw.length+' siswa sudah diisi'}})());
+    add('fa-medal','Ekstrakurikuler Terisi',sw&&ek&&(()=>{let f=0;sw.forEach(s=>{const it=(ek.data||{})[s.nis]||[];if(it.some(x=>x&&ok(x.ekskul)))f++});return{p:pc(f,sw.length),d:f+' dari '+sw.length+' siswa memiliki ekskul'}})());
+    add('fa-star','Kokurikuler Terisi',kk&&(()=>{const c=(kk.data||{})['*']||{},a=[(c.kegiatan||[]).length>0,(c.dimensi||[]).length>0],f=a.filter(Boolean).length;return{p:pc(f,2),d:'Kegiatan '+(a[0]?'✓':'belum')+' · Dimensi Profil Lulusan '+(a[1]?'✓':'belum')}})());
   }
   let tpr=null;
   if(sw){const ag=[...new Set(sw.map(s=>s.agama).filter(Boolean))],a0=S.config.agama[0],U=[];mm.forEach(m=>{if(m.kode==='PAB')(ag.length?ag:[a0]).forEach(a=>U.push([m.kode,a]));else U.push([m.kode,a0])});
     const rs=await Promise.all(U.map(u=>T(()=>api('tp.list',{mapel:u[0],agama:u[1]}))));
     if(rs.every(r=>r)){const f=rs.filter(r=>r.some(i=>i.aktif&&ok(i.teks))).length;tpr={p:pc(f,U.length),d:f+' dari '+U.length+' mapel sudah punya TP aktif'}}}
-  add('fa-bullseye','Tujuan Pembelajaran',tpr);
-  const h=R.map(x=>x.r?`<div class="pgr ${x.r.p>=100?'ok':x.r.p>=50?'mid':'low'}"><div class="pgr-h"><span><i class="fa-solid ${x.ic}"></i> ${x.nm}</span><b>${x.r.p}%</b></div><div class="pgr-bar"><i style="width:${x.r.p}%"></i></div><small>${esc(x.r.d)}</small></div>`:`<div class="pgr low"><div class="pgr-h"><span><i class="fa-solid ${x.ic}"></i> ${x.nm}</span><b>—</b></div><div class="pgr-bar"><i></i></div><small>Data belum dapat dimuat</small></div>`).join('');
+  add('fa-bullseye','Tujuan Pembelajaran Terisi',tpr);
+  const CL={'fa-user-graduate':'c0','fa-pen-to-square':'c1','fa-clipboard-user':'c2','fa-medal':'c3','fa-star':'c4','fa-bullseye':'c5'},
+  bd=r=>!r?'<span class="pgr-bd no">—</span>':r.p>=100?'<span class="pgr-bd ok">✓ LENGKAP</span>':r.p>0?'<span class="pgr-bd">BERJALAN</span>':'<span class="pgr-bd no">BELUM</span>',
+  h=R.map(x=>`<div class="pgr ${CL[x.ic]||'c0'}"><span class="pgr-ic"><i class="fa-solid ${x.ic}"></i></span><div class="pgr-m"><div class="pgr-h"><span>${x.nm}</span><b>${x.r?x.r.p+'%':'—'}</b></div><div class="pgr-bar"><i style="width:${x.r?x.r.p:0}%"></i></div><small>${x.r?esc(x.r.d):'Data belum dapat dimuat'}</small></div>${bd(x.r)}</div>`).join('');
   window._pgK=PGK();window._pgH=h;
   const b=$('#pgbox');if(b&&document.body.contains(b)){b.innerHTML=h;requestAnimationFrame(()=>$$('.pgr-bar i',b).forEach((e,i)=>{e.style.width=(R[i].r?R[i].r.p:0)+'%'}))}}
 
@@ -393,7 +404,7 @@ V.ekskul=async el=>{
 V.koku=async el=>{
   const [sw,d]=await Promise.all([api('siswa.list'),api('koku.list')]),w=!ro(),dis=w?'':'disabled',op=d.opsi,CP=['Sangat baik','Baik','Cukup baik','Perlu bimbingan'],cl=d.data['*']||{kegiatan:[],dimensi:[],capaian:'Baik'},
   hd=(n,s)=>(cl.dimensi||[]).some(y=>y.dim===n&&y.sub.includes(s)),ad=has('admin');
-  el.innerHTML=`<div class="card"><div class="ch">Data Kokurikuler — Kelas ${esc(S.kelas)}</div><div class="cb"><p><b>Kegiatan kokurikuler</b></p><div class="bar" id="kg">${op.kegiatan.map(k=>`<label><input type="checkbox" value="${esc(k)}" ${cl.kegiatan.includes(k)?'checked':''} ${dis}> ${esc(k)}</label>`).join('')}</div>
+  el.innerHTML=`<div class="card"><div class="ch">Data Kokurikuler — Kelas ${esc(S.kelas)}</div><div class="cb"><p style="margin-bottom:10px"><small>Kegiatan dan dimensi di bawah berlaku untuk seluruh kelas ${S.kelas[0]} (${S.kelas[0]}A–${S.kelas[0]}D). Jika satu guru sudah mengisi, guru kelas lain di jenjang yang sama langsung melihatnya dan tetap bisa mengubahnya. Penyesuaian capaian per siswa tetap per kelas.</small></p><p><b>Kegiatan kokurikuler</b></p><div class="bar" id="kg">${op.kegiatan.map(k=>`<label><input type="checkbox" value="${esc(k)}" ${cl.kegiatan.includes(k)?'checked':''} ${dis}> ${esc(k)}</label>`).join('')}</div>
   <p><b>Dimensi Profil Lulusan</b></p>${op.dimensi.map(x=>`<div class="bar dm" data-d="${esc(x.dim)}"><b style="min-width:280px">${esc(x.dim)}</b>${x.sub.map(s=>`<label><input type="checkbox" value="${esc(s)}" ${hd(x.dim,s)?'checked':''} ${dis}> ${esc(s)}</label>`).join('')||'<small>(tanpa subdimensi)</small>'}</div>`).join('')}
   <div class="bar"><b>Capaian kelas:</b><select id="cp" ${dis}>${CP.map(c=>`<option ${c.toLowerCase()===String(cl.capaian).toLowerCase()?'selected':''}>${c}</option>`).join('')}</select>${w?'<button class="btn" id="sv">Simpan</button>':''}</div>
   <p><small>Penyesuaian capaian per siswa (opsional):</small></p><div class="tw"><table><tr><th>No</th><th>Nama</th><th>Capaian</th></tr>${sw.map((s,i)=>{const x=d.data[s.nis];return `<tr><td>${i+1}</td><td>${esc(s.nama)}</td><td><select data-n="${esc(s.nis)}" ${dis}><option value="__">Ikuti kelas</option>${CP.map(c=>`<option ${x&&c.toLowerCase()===String(x.capaian).toLowerCase()?'selected':''}>${c}</option>`).join('')}</select></td></tr>`}).join('')}</table></div></div></div>
@@ -603,10 +614,21 @@ V.nilai=async el=>{
   if($('#fa'))$('#fa').onchange=draw};
 
 V.absensi=async el=>{
-  const [sw,a]=await Promise.all([api('siswa.list'),api('absensi.list')]),w=!ro();
-  el.innerHTML=`<div class="card"><div class="ch">Data Absensi, Catatan & Kenaikan Kelas — Kelas ${S.kelas}</div><div class="cb">${w?'<button class="btn" id="sv" style="margin-bottom:10px">Simpan</button>':''}<div class="tw"><table><tr><th>No</th><th>Nama</th><th>Sakit</th><th>Izin</th><th>Alpa</th><th>Jumlah</th><th title="Sikap — tampil di Leger, tidak dicetak di rapor">SP</th><th>K</th><th>KK</th><th>Catatan Wali Kelas</th><th>Kenaikan Kelas${a.semester==2?'':' (Sem. 2)'}</th></tr>${sw.map((s,i)=>{const x=a.data[s.nis]||{};return `<tr data-n="${esc(s.nis)}"><td>${i+1}</td><td>${esc(s.nama)}</td>${['sakit','izin','alpa'].map(k=>`<td><input type="number" min="0" data-f="${k}" value="${x[k]||0}" ${w?'':'disabled'}></td>`).join('')}<td class="jm">${(x.sakit||0)+(x.izin||0)+(x.alpa||0)}</td>${['sp','k','kk'].map(k=>`<td><select data-f="${k}" ${w?'':'disabled'}>${['','A','B','C','D'].map(o=>`<option ${o===(x[k]||'')?'selected':''}>${o}</option>`).join('')}</select></td>`).join('')}<td><textarea data-f="catatan" rows="2" ${w?'':'disabled'}>${esc(x.catatan||'')}</textarea></td><td><input data-f="kenaikan" value="${esc(x.kenaikan||'')}" placeholder="${esc(a.kenaikanDefault)}" ${w?'':'disabled'}></td></tr>`}).join('')}</table></div><p style="margin-top:10px"><small>Penilaian sikap (SP, K, KK: A–D) hanya tampil di Leger dan tidak dicetak di rapor.</small></p></div></div>`;
-  el.oninput=e=>{const tr=e.target.closest('tr');if(tr&&tr.dataset.n)$('.jm',tr).textContent=$$('input[type=number]',tr).reduce((t,i)=>t+(+i.value||0),0)};
-  if(w)$('#sv').onclick=()=>run(()=>api('absensi.save',{entries:$$('tr[data-n]',el).map(tr=>{const o={nis:tr.dataset.n};$$('[data-f]',tr).forEach(i=>o[i.dataset.f]=i.value);return o})}),'Tersimpan')};
+  const [sw,a]=await Promise.all([api('siswa.list'),api('absensi.list')]),w=!ro(),
+  hr=v=>{const c=v===''||v==null?'':String(v),mx=Math.max(90,(+c||0));return '<option value="" '+(c===''?'selected':'')+'>-</option>'+Array.from({length:mx+1},(_,n)=>`<option ${String(n)===c?'selected':''}>${n}</option>`).join('')},
+  jmh=a=>a.every(v=>v===''||v==null)?'-':a.reduce((t,v)=>t+(+v||0),0);
+  el.innerHTML=`<div class="card"><div class="ch">Data Absensi, Catatan & Kenaikan Kelas — Kelas ${S.kelas}</div><div class="cb">${w?'<div class="bar" style="margin-bottom:10px"><span class="tag" id="sst"><i class="fa-solid fa-cloud-arrow-up"></i><span>Otomatis tersimpan</span></span></div>':''}<div class="tw"><table><tr><th>No</th><th>Nama</th><th>Sakit</th><th>Izin</th><th>Alpa</th><th>Jumlah</th><th title="Sikap — tampil di Leger, tidak dicetak di rapor">SP</th><th>K</th><th>KK</th><th>Catatan Wali Kelas</th><th>Kenaikan Kelas${a.semester==2?'':' (Sem. 2)'}</th></tr>${sw.map((s,i)=>{const x=a.data[s.nis]||{};return `<tr data-n="${esc(s.nis)}"><td>${i+1}</td><td>${esc(s.nama)}</td>${['sakit','izin','alpa'].map(k=>`<td><select data-f="${k}" ${w?'':'disabled'}>${hr(x[k])}</select></td>`).join('')}<td class="jm">${jmh([x.sakit,x.izin,x.alpa])}</td>${['sp','k','kk'].map(k=>`<td><select data-f="${k}" ${w?'':'disabled'}>${['','A','B','C','D'].map(o=>`<option ${o===(x[k]||'')?'selected':''}>${o}</option>`).join('')}</select></td>`).join('')}<td><textarea data-f="catatan" rows="2" ${w?'':'disabled'}>${esc(x.catatan||'')}</textarea></td><td><input data-f="kenaikan" value="${esc(x.kenaikan||'')}" placeholder="${esc(a.kenaikanDefault)}" ${w?'':'disabled'}></td></tr>`}).join('')}</table></div><p style="margin-top:10px"><small>Perubahan tersimpan otomatis. Tanda “-” berarti belum diisi (belum dihitung di progres dashboard). Isi 0 bila siswa tidak pernah absen. Penilaian sikap (SP, K, KK: A–D) hanya tampil di Leger dan tidak dicetak di rapor.</small></p></div></div>`;
+  const D=new Map(),rowData=tr=>{const o={nis:tr.dataset.n};$$('[data-f]',tr).forEach(i=>o[i.dataset.f]=i.value);return o},
+  st=t=>{const x=$('#sst');if(x)$('span',x).textContent=t};
+  let tmr,busy=false;
+  const flush=async()=>{if(busy||!D.size)return;busy=true;const snap=new Map(D);D.clear();st('Menyimpan…');
+    try{await api('absensi.save',{entries:[...snap.values()]});st('Tersimpan ✓')}
+    catch(e){snap.forEach((v,k)=>{if(!D.has(k))D.set(k,v)});st('Gagal menyimpan, mencoba lagi…');toast(e.message,1);clearTimeout(tmr);tmr=setTimeout(flush,4000)}
+    busy=false;if(D.size&&!/Gagal/.test(($('#sst')||{textContent:''}).textContent)){clearTimeout(tmr);tmr=setTimeout(flush,600)}};
+  window._flush=flush;window._pend=()=>D.size>0||busy;
+  el.oninput=el.onchange=e=>{const tr=e.target.closest('tr');if(!tr||!tr.dataset.n)return;
+    $('.jm',tr).textContent=jmh(['sakit','izin','alpa'].map(k=>$('[data-f='+k+']',tr).value));
+    if(!w)return;D.set(tr.dataset.n,rowData(tr));st('Menyimpan…');clearTimeout(tmr);tmr=setTimeout(flush,900)}};
 
 V.rapor=async el=>{
   const [sw,tg]=await Promise.all([api('siswa.list'),api('tanggal.get')]);
