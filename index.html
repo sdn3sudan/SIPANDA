@@ -96,6 +96,15 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;bac
 .big-ok{color:var(--ok);font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:700;margin-bottom:8px}.big-bad{color:#fff;font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:700;text-shadow:0 0 14px rgba(255,77,106,.9)}
 .warn-txt{display:block;margin-top:10px;color:var(--gold);font-weight:700}
 .ann p{padding:10px 0;border-bottom:1px dashed var(--line);line-height:1.5}.ann p:last-child{border:0}
+.pg{margin-bottom:14px}.pg:last-child{margin-bottom:0}
+.pg-h{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:700;font-size:.9rem}
+.pg-h span i{color:var(--rose);width:20px;text-align:center;margin-right:4px}
+.pg-h b{font-family:'Orbitron',sans-serif;font-size:.95rem;color:var(--gold)}
+.pg-bar{height:10px;margin:6px 0 3px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden}
+.pg-bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--rose),#ff8a9c);transition:width .7s ease}
+.pg.mid .pg-bar i{background:linear-gradient(90deg,var(--gold-d),var(--gold))}
+.pg.ok .pg-bar i{background:linear-gradient(90deg,#1fb877,var(--ok))}.pg.ok .pg-h b{color:var(--ok)}
+.pg small{color:var(--sub);font-size:.76rem}
 
 /* CARD / FORM / TABLE */
 .card{background:linear-gradient(160deg,rgba(60,0,14,.62),rgba(25,0,7,.72));border:1px solid var(--line);border-radius:6px 26px 6px 26px;margin-bottom:22px;overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,.35)}
@@ -325,6 +334,32 @@ const V={};
 })();
 
 
+/* Progres pekerjaan per pengguna (dashboard) */
+const PGK=()=>(S.kelas||'')+'|'+((S.user&&S.user.nama)||'');
+function PGH(){return window._pgK===PGK()&&window._pgH?window._pgH:'<div class="sk" style="width:60%"></div><div class="sk"></div><div class="sk"></div><div class="sk" style="width:70%"></div>'}
+async function pgFill(){
+  const box=$('#pgbox');if(!box)return;
+  const ms=S.mapel.filter(m=>m.lihat),own=ms.filter(m=>m.edit),mm=own.length?own:ms,fl=full(),ok=v=>v!==undefined&&v!==null&&String(v).trim()!=='',
+  T=async f=>{try{return await f()}catch(e){return null}},
+  pc=(f,t)=>t?Math.round(f/t*100):0;
+  const [sw,nl,ab,ek,kk]=await Promise.all([T(()=>api('siswa.list')),T(()=>api('nilai.list')),fl?T(()=>api('absensi.list')):null,fl?T(()=>api('ekskul.list')):null,fl?T(()=>api('koku.list')):null]);
+  const R=[],add=(ic,nm,r)=>R.push({ic,nm,r});
+  if(fl)add('fa-user-graduate','Data Siswa',sw&&(()=>{const t=sw.length*5;let f=0;sw.forEach(s=>{const x=fx(s);[x.nama,x.nis,x.nisn,x.jk,x.agama].forEach(v=>{if(ok(v))f++})});return{p:pc(f,t),d:sw.length?sw.length+' siswa · '+fmt(f)+' dari '+fmt(t)+' kolom data terisi':'Belum ada data siswa'}})());
+  add('fa-pen-to-square','Daftar Nilai',sw&&nl&&(()=>{const t=sw.length*mm.length;let f=0;sw.forEach(s=>mm.forEach(m=>{if(ok(nl[s.nis+'|'+m.kode]))f++}));return{p:pc(f,t),d:fmt(f)+' dari '+fmt(t)+' nilai terisi ('+mm.length+' mapel)'}})());
+  if(fl){
+    add('fa-clipboard-user','Absensi',sw&&ab&&(()=>{let f=0;sw.forEach(s=>{const x=(ab.data||{})[s.nis];if(x&&(['sakit','izin','alpa','sp','k','kk','catatan','kenaikan'].some(k=>ok(x[k]))))f++});return{p:pc(f,sw.length),d:f+' dari '+sw.length+' siswa sudah diisi'}})());
+    add('fa-medal','Ekstrakurikuler',sw&&ek&&(()=>{let f=0;sw.forEach(s=>{const it=(ek.data||{})[s.nis]||[];if(it.some(x=>x&&ok(x.ekskul)))f++});return{p:pc(f,sw.length),d:f+' dari '+sw.length+' siswa memiliki ekskul'}})());
+    add('fa-star','Kokurikuler',kk&&(()=>{const c=(kk.data||{})['*']||{},a=[(c.kegiatan||[]).length>0,(c.dimensi||[]).length>0],f=a.filter(Boolean).length;return{p:pc(f,2),d:'Kegiatan '+(a[0]?'✓':'belum')+' · Dimensi Profil Lulusan '+(a[1]?'✓':'belum')}})());
+  }
+  let tpr=null;
+  if(sw){const ag=[...new Set(sw.map(s=>s.agama).filter(Boolean))],a0=S.config.agama[0],U=[];mm.forEach(m=>{if(m.kode==='PAB')(ag.length?ag:[a0]).forEach(a=>U.push([m.kode,a]));else U.push([m.kode,a0])});
+    const rs=await Promise.all(U.map(u=>T(()=>api('tp.list',{mapel:u[0],agama:u[1]}))));
+    if(rs.every(r=>r)){const f=rs.filter(r=>r.some(i=>i.aktif&&ok(i.teks))).length;tpr={p:pc(f,U.length),d:f+' dari '+U.length+' mapel sudah punya TP aktif'}}}
+  add('fa-bullseye','Tujuan Pembelajaran',tpr);
+  const h=R.map(x=>x.r?`<div class="pg ${x.r.p>=100?'ok':x.r.p>=50?'mid':'low'}"><div class="pg-h"><span><i class="fa-solid ${x.ic}"></i> ${x.nm}</span><b>${x.r.p}%</b></div><div class="pg-bar"><i style="width:${x.r.p}%"></i></div><small>${esc(x.r.d)}</small></div>`:`<div class="pg low"><div class="pg-h"><span><i class="fa-solid ${x.ic}"></i> ${x.nm}</span><b>—</b></div><div class="pg-bar"><i></i></div><small>Data belum dapat dimuat</small></div>`).join('');
+  window._pgK=PGK();window._pgH=h;
+  const b=$('#pgbox');if(b&&document.body.contains(b)){b.innerHTML=h;requestAnimationFrame(()=>$$('.pg-bar i',b).forEach((e,i)=>{e.style.width=(R[i].r?R[i].r.p:0)+'%'}))}}
+
 V.dashboard=async el=>{
   const [s,pg]=await Promise.all([api('stats'),api('pengumuman.list')]);
   const rl=roleText();
@@ -336,10 +371,11 @@ V.dashboard=async el=>{
     <div class="kpi"><i class="fa-solid fa-book-open"></i><small>Mata Pelajaran</small><b>${s.mapel}</b></div>
     <div class="kpi"><i class="fa-solid fa-chart-column"></i><small>Jumlah Nilai</small><b>${fmt(s.jumlahNilai)}</b></div></div>
   <div class="g2"><div class="card"><div class="ch">Status Input Nilai · ${s.scope==='sekolah'?'Seluruh Sekolah':'Kelas '+esc(s.scope)}</div><div class="cb stat-split"><div class="dn" style="--p:${s.persen}"><span>${s.persen}%</span></div><div>Sudah Diinput<div class="big-ok">${fmt(s.sudah)}</div>Belum Diinput<div class="big-bad">${fmt(s.belum)}</div></div></div></div>
-  <div class="card"><div class="ch">Informasi Penting</div><div class="cb">Pastikan data dan nilai selalu diperbarui.${S.passwordDefault?'<span class="warn-txt"><i class="fa-solid fa-triangle-exclamation"></i> Segera ganti password default di menu Pengaturan.</span>':''}</div></div></div>
+  <div class="card"><div class="ch">Progres Pekerjaan Anda · Kelas ${esc(S.kelas)}</div><div class="cb"><div id="pgbox">${PGH()}</div>${S.passwordDefault?'<span class="warn-txt"><i class="fa-solid fa-triangle-exclamation"></i> Segera ganti password default di menu Pengaturan.</span>':''}</div></div></div>
   <div class="card"><div class="ch">Pengumuman<button class="btn2" id="pgall" style="margin-left:auto;padding:5px 12px;font-size:.78rem">Lihat Semua</button></div><div class="cb ann" id="pgl">${pg.length?pg.slice(0,3).map(p=>`<p><b>${esc(p.judul)}</b> <small>${esc(p.tanggal)}</small><br>${esc(p.isi)}</p>`).join(''):'Tidak ada pengumuman terbaru.'}</div></div>`;
   const pl=p=>`<p><b>${esc(p.judul)}</b> <small>${esc(p.tanggal)}</small><br>${esc(p.isi)}</p>`;let all=false;
-  $('#pgall').onclick=()=>{all=!all;$('#pgl').innerHTML=pg.length?pg.slice(0,all?pg.length:3).map(pl).join(''):'Tidak ada pengumuman terbaru.';$('#pgall').textContent=all?'Ringkas':'Lihat Semua'}};
+  $('#pgall').onclick=()=>{all=!all;$('#pgl').innerHTML=pg.length?pg.slice(0,all?pg.length:3).map(pl).join(''):'Tidak ada pengumuman terbaru.';$('#pgall').textContent=all?'Ringkas':'Lihat Semua'};
+  pgFill()};
 
 
 V.sekolah=async el=>{
