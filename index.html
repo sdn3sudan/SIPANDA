@@ -138,7 +138,10 @@ select option{background:#3a000c;color:#fff}
 input:disabled,textarea:disabled{opacity:.5;cursor:not-allowed}
 input[type=checkbox]{accent-color:var(--gold);width:17px;height:17px;padding:0;vertical-align:middle}
 td input[type=number]{width:74px;text-align:center}td input,td textarea,td select{width:100%}td input[type=checkbox]{width:17px}
-td select[data-f=sakit],td select[data-f=izin],td select[data-f=alpa]{min-width:84px;padding:10px 6px 10px 12px}td select[data-f=sp],td select[data-f=k],td select[data-f=kk]{min-width:72px;padding:10px 6px 10px 12px}
+td select[data-f]{-webkit-appearance:none;appearance:none;color-scheme:dark;color:#fff;-webkit-text-fill-color:#fff;opacity:1;text-align:center;text-align-last:center;cursor:pointer;min-height:42px;line-height:1.3;text-overflow:clip;padding:10px 26px 10px 12px;background-color:rgba(0,0,0,.3);background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'><path d='M1 1.5l5 5 5-5' fill='none' stroke='%23FFD27A' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/></svg>");background-repeat:no-repeat;background-position:right 9px center;background-size:12px 8px}
+td select[data-f]:disabled{color:#fff;-webkit-text-fill-color:#fff;opacity:.75;cursor:not-allowed}
+td select[data-f] option{background:#3a000c;color:#fff;-webkit-text-fill-color:#fff}
+td select[data-f=sakit],td select[data-f=izin],td select[data-f=alpa]{min-width:92px}td select[data-f=sp],td select[data-f=k],td select[data-f=kk]{min-width:78px}
 .tw table{border-collapse:collapse;width:100%;min-width:560px;text-align:left;font-size:.95rem}
 .tw th{padding:12px 14px;background:rgba(255,45,79,.28);color:var(--gold);font-family:'Orbitron',sans-serif;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;border-bottom:1px solid var(--line)}
 .tw td{padding:9px 14px;border-bottom:1px solid rgba(255,110,130,.16);color:var(--ink);vertical-align:middle}
