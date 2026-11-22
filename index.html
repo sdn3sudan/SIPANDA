@@ -96,15 +96,15 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;bac
 .big-ok{color:var(--ok);font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:700;margin-bottom:8px}.big-bad{color:#fff;font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:700;text-shadow:0 0 14px rgba(255,77,106,.9)}
 .warn-txt{display:block;margin-top:10px;color:var(--gold);font-weight:700}
 .ann p{padding:10px 0;border-bottom:1px dashed var(--line);line-height:1.5}.ann p:last-child{border:0}
-.pg{margin-bottom:14px}.pg:last-child{margin-bottom:0}
-.pg-h{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:700;font-size:.9rem}
-.pg-h span i{color:var(--rose);width:20px;text-align:center;margin-right:4px}
-.pg-h b{font-family:'Orbitron',sans-serif;font-size:.95rem;color:var(--gold)}
-.pg-bar{height:10px;margin:6px 0 3px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden}
-.pg-bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--rose),#ff8a9c);transition:width .7s ease}
-.pg.mid .pg-bar i{background:linear-gradient(90deg,var(--gold-d),var(--gold))}
-.pg.ok .pg-bar i{background:linear-gradient(90deg,#1fb877,var(--ok))}.pg.ok .pg-h b{color:var(--ok)}
-.pg small{color:var(--sub);font-size:.76rem}
+.pgr{margin-bottom:14px}.pgr:last-child{margin-bottom:0}
+.pgr-h{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:700;font-size:.9rem}
+.pgr-h span i{color:var(--rose);width:20px;text-align:center;margin-right:4px}
+.pgr-h b{font-family:'Orbitron',sans-serif;font-size:.95rem;color:var(--gold)}
+.pgr-bar{height:10px;margin:6px 0 3px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden}
+.pgr-bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--rose),#ff8a9c);transition:width .7s ease}
+.pgr.mid .pgr-bar i{background:linear-gradient(90deg,var(--gold-d),var(--gold))}
+.pgr.ok .pgr-bar i{background:linear-gradient(90deg,#1fb877,var(--ok))}.pgr.ok .pgr-h b{color:var(--ok)}
+.pgr small{color:var(--sub);font-size:.76rem}
 
 /* CARD / FORM / TABLE */
 .card{background:linear-gradient(160deg,rgba(60,0,14,.62),rgba(25,0,7,.72));border:1px solid var(--line);border-radius:6px 26px 6px 26px;margin-bottom:22px;overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,.35)}
@@ -356,9 +356,9 @@ async function pgFill(){
     const rs=await Promise.all(U.map(u=>T(()=>api('tp.list',{mapel:u[0],agama:u[1]}))));
     if(rs.every(r=>r)){const f=rs.filter(r=>r.some(i=>i.aktif&&ok(i.teks))).length;tpr={p:pc(f,U.length),d:f+' dari '+U.length+' mapel sudah punya TP aktif'}}}
   add('fa-bullseye','Tujuan Pembelajaran',tpr);
-  const h=R.map(x=>x.r?`<div class="pg ${x.r.p>=100?'ok':x.r.p>=50?'mid':'low'}"><div class="pg-h"><span><i class="fa-solid ${x.ic}"></i> ${x.nm}</span><b>${x.r.p}%</b></div><div class="pg-bar"><i style="width:${x.r.p}%"></i></div><small>${esc(x.r.d)}</small></div>`:`<div class="pg low"><div class="pg-h"><span><i class="fa-solid ${x.ic}"></i> ${x.nm}</span><b>—</b></div><div class="pg-bar"><i></i></div><small>Data belum dapat dimuat</small></div>`).join('');
+  const h=R.map(x=>x.r?`<div class="pgr ${x.r.p>=100?'ok':x.r.p>=50?'mid':'low'}"><div class="pgr-h"><span><i class="fa-solid ${x.ic}"></i> ${x.nm}</span><b>${x.r.p}%</b></div><div class="pgr-bar"><i style="width:${x.r.p}%"></i></div><small>${esc(x.r.d)}</small></div>`:`<div class="pgr low"><div class="pgr-h"><span><i class="fa-solid ${x.ic}"></i> ${x.nm}</span><b>—</b></div><div class="pgr-bar"><i></i></div><small>Data belum dapat dimuat</small></div>`).join('');
   window._pgK=PGK();window._pgH=h;
-  const b=$('#pgbox');if(b&&document.body.contains(b)){b.innerHTML=h;requestAnimationFrame(()=>$$('.pg-bar i',b).forEach((e,i)=>{e.style.width=(R[i].r?R[i].r.p:0)+'%'}))}}
+  const b=$('#pgbox');if(b&&document.body.contains(b)){b.innerHTML=h;requestAnimationFrame(()=>$$('.pgr-bar i',b).forEach((e,i)=>{e.style.width=(R[i].r?R[i].r.p:0)+'%'}))}}
 
 V.dashboard=async el=>{
   const [s,pg]=await Promise.all([api('stats'),api('pengumuman.list')]);
